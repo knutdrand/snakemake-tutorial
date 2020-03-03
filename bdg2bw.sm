@@ -1,0 +1,25 @@
+rule clip_bedgraph:
+    input:
+        "{species}/{name}.bdg",
+        "{species}/data/chrom.sizes.txt"
+    output:
+        temp("{species}/{name}.bdg.clip")
+    shell:
+        "bedtools slop -i {input[0]} -g {input[1]} -b 0 | bedClip stdin {input[1]} {output}"
+
+rule sort_bedgraph:
+    input:
+        "{name}.bdg.clip",
+    output:
+        temp("{name}.bdg.clip.sort")
+    shell:
+        "LC_COLLATE=C sort -k1,1 -k2,2n {input} > {output}"
+
+rule bedgraph_to_bigwig:
+    input:
+        "{species}/{name}.bdg.clip.sort",
+        "{species}/data/chrom.sizes.txt"
+    output:
+        "{species}/{name}.bw"
+    shell:
+        "bedGraphToBigWig {input[0]} {input[1]} {output}"
